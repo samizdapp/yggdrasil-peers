@@ -6,6 +6,7 @@ from lxml.etree import XPath
 
 import sys
 import random
+from collections import defaultdict
 
 from yggdrasil_iface import yqq
 
@@ -96,7 +97,8 @@ class CrawledPeers(PeerSource):
 
     Attributes:
         resource: A dictionary of Yggdrasil keys to NodeInfo.
-        peers: A dictionary of cohorts to members.
+        # peers: A collection of extracted samizdApp peers.
+        cohorts: A dictionary of cohorts to members.
 
     Variables:
         MAX_DEPTH: The furthest nodes to be reached.
@@ -126,21 +128,16 @@ class CrawledPeers(PeerSource):
             keys += children
 
     def extract(self, resource=None):
-        self.peers = dict()
+        self.cohort = defaultdict(list)
 
         for key, info in self.resource.items():
-            self.ygg.query(yqq.REMOTE_SELF(key))
-
             for group in info["samizdapp"]["groups"]:
-                try:
-                    self.peers[group].append(key)
-                except KeyError:
-                    self.peers[group] = list()
-                    self.peers[group].append(key)
+                if group in self.ygg.groups:
+                    self.cohort[group].append(key)
 
     def write(self, fd=sys.stdout):
         fd.write("# Samizdapp negotiated peers:\n")
-        for protocol, cohort in self.peers.items():
+        for protocol, cohort in self.cohort.items():
             fd.write(f"## Protocol: {protocol}\n")
 
             for addr, name in cohort:

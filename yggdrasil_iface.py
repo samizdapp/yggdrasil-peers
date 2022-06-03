@@ -40,7 +40,9 @@ class YggdrasilConnection():
         self.neighbours = self.query(yqq.PEERS)
 
         self.key = list(self.props.values())[0]["key"]
-        self.groups = self.query(yqq.NODEINFO(self.key))
+        self.groups = set(
+            self.query(yqq.NODEINFO(self.key))["samizdapp"]["groups"]
+        )
 
     @classmethod
     def fromSocket(cls, path="/var/run/yg/yg.sock"):
