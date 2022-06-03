@@ -3,6 +3,8 @@ import json
 
 
 class YggdrasilQuery():
+    """An Enum-like class for useful Yggdrasil requests."""
+
     SELF = {"request": "getSelf"}
     PEERS = {"request": "getPeers"}
     def NODEINFO(key): return {"request": "getNodeInfo", "key": key}
@@ -18,7 +20,17 @@ yqq = YggdrasilQuery
 
 
 class YggdrasilConnection():
-    """Represents a connection to the Yggdrasil daemon."""
+    """Represents a connection to the Yggdrasil daemon.
+
+    Usage:
+      Creation:
+        ygg = YggdrasilConnection.fromSocket(PATH)
+      or,
+        ygg = YggdrasilConnection.fromServer(HOST, PORT)
+
+      Querying:
+        ygg.query(yqq.SELF)
+    """
 
     def __init__(self, family, address):
         self.socket = s.socket(family, s.SOCK_STREAM)

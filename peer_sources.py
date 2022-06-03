@@ -46,7 +46,18 @@ class PeerSource(ABC):
 
 
 class PublicPeers(PeerSource):
-    """First hops scraped from configured directory websites."""
+    """First hops scraped from configured directory websites.
+
+    Attributes:
+        resource: The parsed web page.
+        peers: A list of extracted peers.
+        directory: The location of the page containing active peers.
+        find: An XPath object that extracts peers from the directory.
+
+    Variables:
+        OVERLAP: The minimum number of peers that remain between
+    subsequent calls (constant).
+    """
 
     directory = "publicpeers.neilalexander.dev"
     find = XPath("//tr[@class='statusgood']/td[@id='address']/text()")
@@ -81,7 +92,15 @@ class PublicPeers(PeerSource):
 
 
 class CrawledPeers(PeerSource):
-    """Peers that have been discovered after crawling the network."""
+    """Peers that have been discovered after crawling the network.
+
+    Attributes:
+        resource: A dictionary of Yggdrasil keys to NodeInfo.
+        peers: A dictionary of cohorts to members.
+
+    Variables:
+        MAX_DEPTH: The furthest nodes to be reached.
+    """
 
     MAX_DEPTH = 2
 
@@ -107,21 +126,21 @@ class CrawledPeers(PeerSource):
             keys += children
 
     def extract(self, resource=None):
-        self.cohorts = dict()
+        self.peers = dict()
 
         for key, info in self.resource.items():
             self.ygg.query(yqq.REMOTE_SELF(key))
 
             for group in info["samizdapp"]["groups"]:
                 try:
-                    self.cohorts[group].append(key)
+                    self.peers[group].append(key)
                 except KeyError:
-                    self.cohorts[group] = list()
-                    self.cohorts[group].append(key)
+                    self.peers[group] = list()
+                    self.peers[group].append(key)
 
     def write(self, fd=sys.stdout):
         fd.write("# Samizdapp negotiated peers:\n")
-        for protocol, cohort in self.cohorts.items():
+        for protocol, cohort in self.peers.items():
             fd.write(f"## Protocol: {protocol}\n")
 
             for addr, name in cohort:
