@@ -57,7 +57,7 @@ class YggdrasilConnection():
         query["keepalive"] = True
         self.socket.send(json.dumps(query).encode("utf-8"))
 
-        res = json.loads(self.socket.recv(1024*15))
+        res = json.loads(self.socket.recv(1024*32))
 
         if res["status"] == "success":
             # Remove the nesting of response->msg->...
