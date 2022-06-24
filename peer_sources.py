@@ -104,7 +104,7 @@ class CrawledPeers(PeerSource):
         MAX_DEPTH: The furthest nodes to be reached.
     """
 
-    MAX_DEPTH = 2
+    MAX_DEPTH = 10
 
     def __init__(self, ygg):
         self.ygg = ygg
@@ -113,19 +113,31 @@ class CrawledPeers(PeerSource):
         self.resource = dict()
 
         keys = [data["key"] for data in self.ygg.neighbours.values()]
+        print(keys)
         depth = 0
 
         while depth < self.MAX_DEPTH:
             depth += 1
             key = keys.pop()
-            nodeInfo = self.ygg.query(yqq.NODEINFO(key))
-
+            # print('key')
+            # print(key)?
+            nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
+            # print(nodeInfo)
             if "samizdapp" in nodeInfo.keys():
                 depth += 1  # Reduce search space as cohort members are found.
+                nodeInfo["key"] = key
                 self.resource[key] = nodeInfo
 
-            children = self.ygg.query(yqq.REMOTE_PEERS(key))["keys"]
-            keys += children
+            children = self.ygg.query(yqq.REMOTE_PEERS(key), True)
+            # print('chilren')
+            # print(children )
+            # peers = self.ygg.query(yqq.REMOTE_SELF(key))
+            # print('peers')
+            # print(peers)
+            # dht = self.ygg.query(yqq.REMOTE_DHT(key))
+            # print('dht')
+            # print(dht)
+            keys += children['keys']
 
     def extract(self, resource=None):
         self.cohort = defaultdict(list)
@@ -133,15 +145,19 @@ class CrawledPeers(PeerSource):
         for key, info in self.resource.items():
             for group in info["samizdapp"]["groups"]:
                 if group in self.ygg.groups:
-                    self.cohort[group].append(key)
+                    print('append')
+                    print(info)
+                    self.cohort[group].append(info)
 
     def write(self, fd=sys.stdout):
-        fd.write("# Samizdapp negotiated peers:\n")
+        # fd.write("# Samizdapp negotiated peers:\n")
         for protocol, cohort in self.cohort.items():
-            fd.write(f"## Protocol: {protocol}\n")
+            # fd.write(f"## Protocol: {protocol}\n")
 
-            for addr, name in cohort:
-                fd.write(f"{addr}\t{name}\n")
+            for info in cohort:
+                addr = info['addr']
+                key = info['key']
+                fd.write(f"{addr} {protocol}.{key}.yg\n")
 
         if fd is not sys.stdout:
             fd.close()
