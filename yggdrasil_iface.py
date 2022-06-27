@@ -60,7 +60,10 @@ class YggdrasilConnection():
         query["keepalive"] = True
         self.socket.send(json.dumps(query).encode("utf-8"))
 
-        res = json.loads(self.socket.recv(1024*32))
+        try:
+            res = json.loads(self.socket.recv(1024*128))
+        except:
+            return None
 
         if res["status"] == "success":
             # Remove the nesting of response->msg->...
@@ -68,10 +71,11 @@ class YggdrasilConnection():
             addr = list(response.keys())[0]
 
             rval = list(res["response"].values())[0]
-            print('RVAL')
+            # print('RVAL')
             if getAddr == True:
                 rval["addr"] = addr
-            print(rval)
+            # print(rval)
             return list(res["response"].values())[0]
         else:
-            raise ConnectionError("Query failed.")
+            return None
+

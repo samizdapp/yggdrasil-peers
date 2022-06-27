@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from bloom_filter import BloomFilter
 from http.client import HTTPSConnection
 from lxml.html import parse
 from lxml.etree import XPath
@@ -104,32 +104,48 @@ class CrawledPeers(PeerSource):
         MAX_DEPTH: The furthest nodes to be reached.
     """
 
-    MAX_DEPTH = 10
-
-    def __init__(self, ygg):
+    def __init__(self, ygg, keys = []):
         self.ygg = ygg
+        self.keys = keys
+        self.max_depth = len(self.keys) + 1
+        self.bloom = BloomFilter()
 
     def fetch(self):
         self.resource = dict()
 
-        keys = [data["key"] for data in self.ygg.neighbours.values()]
-        print(keys)
+        print('start fetch', self.max_depth, self.keys)
         depth = 0
 
-        while depth < self.MAX_DEPTH:
-            depth += 1
-            key = keys.pop()
-            # print('key')
-            # print(key)?
+        while depth < self.max_depth:
+            # depth += 1
+            try:
+                key = self.keys.pop()
+            except:
+                print('out of keys')
+                return
+            
+            if key in self.bloom:
+                print('skip seen')
+                continue
+            
+            print('add to bloom')
+            self.bloom.add(key)
+            print('key')
+            print(key)
             nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
+            if nodeInfo == None:
+                continue
             # print(nodeInfo)
             if "samizdapp" in nodeInfo.keys():
+                print('found samizdapp')
                 depth += 1  # Reduce search space as cohort members are found.
                 nodeInfo["key"] = key
                 self.resource[key] = nodeInfo
 
             children = self.ygg.query(yqq.REMOTE_PEERS(key), True)
-            # print('chilren')
+            if children == None:
+                continue
+            # print('children')
             # print(children )
             # peers = self.ygg.query(yqq.REMOTE_SELF(key))
             # print('peers')
@@ -137,7 +153,11 @@ class CrawledPeers(PeerSource):
             # dht = self.ygg.query(yqq.REMOTE_DHT(key))
             # print('dht')
             # print(dht)
-            keys += children['keys']
+            try:
+                self.keys += children['keys']
+            except:
+                continue
+        print('max depth', depth, self.max_depth)
 
     def extract(self, resource=None):
         self.cohort = defaultdict(list)
@@ -157,7 +177,7 @@ class CrawledPeers(PeerSource):
             for info in cohort:
                 addr = info['addr']
                 key = info['key']
-                fd.write(f"{addr} {protocol}.{key}.yg\n")
+                fd.write(f"{addr} {protocol}.{key[:63]}.{key[63:64]}.yg\n")
 
         if fd is not sys.stdout:
             fd.close()

@@ -1,10 +1,14 @@
 #!/bin/bash
-
 while :
 do
-  rm hosts_crawled
-  python3 example.py
-  cat hosts_header > /peers/yg_hosts
-  cat hosts_crawled >> /peers/yg_hosts
-  sleep 5
+  echo "peers crawl loop"
+  echo "run script"
+  python3 -u example.py
+  echo "ran script"
+  tmp=$(mktemp)
+  cat hosts_header > $tmp
+  cat hosts_crawled >> $tmp
+  cat $tmp > /peers/yg_hosts
+  cat /peers/yg_hosts
+  sleep 100
 done
