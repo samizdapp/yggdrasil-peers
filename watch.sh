@@ -10,5 +10,5 @@ do
   cat hosts_crawled >> $tmp
   cat $tmp > /peers/yg_hosts
   cat /peers/yg_hosts
-  sleep 100
+  sleep 10
 done

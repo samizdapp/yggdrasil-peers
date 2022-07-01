@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from bloom_filter import BloomFilter
+from bloom_filter2 import BloomFilter
 from http.client import HTTPSConnection
 from lxml.html import parse
 from lxml.etree import XPath
@@ -41,6 +41,7 @@ class PeerSource(ABC):
 
     def perform(self):
         """Perform all steps in sequence with their defaults."""
+        # self.max_depth = max_depth
         self.fetch()
         self.extract()
         self.write()
@@ -104,59 +105,61 @@ class CrawledPeers(PeerSource):
         MAX_DEPTH: The furthest nodes to be reached.
     """
 
-    def __init__(self, ygg, keys = []):
+    def __init__(self, ygg, keys = [], max_depth = 1):
         self.ygg = ygg
         self.keys = keys
-        self.max_depth = len(self.keys) + 1
-        self.bloom = BloomFilter()
+        self.max_depth = max_depth
+        self.bloom = BloomFilter(max_elements=10**8, error_rate=0.01) #, filename=('/peers/bloom4.bin', -1))
+        self.bloom_peered = BloomFilter(max_elements=10**8, error_rate=0.01)
 
     def fetch(self):
         self.resource = dict()
-
         print('start fetch', self.max_depth, self.keys)
         depth = 0
 
         while depth < self.max_depth:
             # depth += 1
             try:
-                key = self.keys.pop()
+                key = self.keys.pop(0)
             except:
                 print('out of keys')
                 return
             
-            if key in self.bloom:
-                print('skip seen')
-                continue
-            
-            print('add to bloom')
-            self.bloom.add(key)
-            print('key')
-            print(key)
-            nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
-            if nodeInfo == None:
-                continue
-            # print(nodeInfo)
-            if "samizdapp" in nodeInfo.keys():
-                print('found samizdapp')
-                depth += 1  # Reduce search space as cohort members are found.
-                nodeInfo["key"] = key
-                self.resource[key] = nodeInfo
+            if key not in self.bloom:
+                print('query nodeInfo for key: ', key )
+                self.bloom.add(key)
+                nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
+                if nodeInfo == None:
+                    continue
+                # print(nodeInfo)
+                if "samizdapp" in nodeInfo.keys():
+                    print('found samizdapp')
+                    depth += 1  # Reduce search space as cohort members are found.
+                    nodeInfo["key"] = key
+                    self.resource[key] = nodeInfo
+            else:
+                print('skip nodeInfo ', key)
 
-            children = self.ygg.query(yqq.REMOTE_PEERS(key), True)
-            if children == None:
-                continue
-            # print('children')
-            # print(children )
-            # peers = self.ygg.query(yqq.REMOTE_SELF(key))
-            # print('peers')
-            # print(peers)
-            # dht = self.ygg.query(yqq.REMOTE_DHT(key))
-            # print('dht')
-            # print(dht)
-            try:
-                self.keys += children['keys']
-            except:
-                continue
+            if key not in self.bloom_peered:
+                print('query peers for key: ', key)
+                self.bloom_peered.add(key)
+                children = self.ygg.query(yqq.REMOTE_PEERS(key), True)
+                if children == None:
+                    continue
+                # print('children')
+                # print(children )
+                # peers = self.ygg.query(yqq.REMOTE_SELF(key))
+                # print('peers')
+                # print(peers)
+                # dht = self.ygg.query(yqq.REMOTE_DHT(key))
+                # print('dht')
+                # print(dht)
+                try:
+                    self.keys += children['keys']
+                except:
+                    continue
+            else:
+                print('skip peers: ', key)
         print('max depth', depth, self.max_depth)
 
     def extract(self, resource=None):

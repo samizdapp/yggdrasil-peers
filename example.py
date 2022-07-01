@@ -11,21 +11,25 @@ print('connect server', True)
 ygg = YggdrasilConnection.fromServer()
 print("query self", True)
 ygg.query(yqq.SELF)
-
+max_depth = 1
 try:
     with open("hosts_crawled", 'r') as file:
         lines = file.readlines()
         keys = [line.rstrip().split(' ').pop().split('.')[1] + line.rstrip().split(' ').pop().split('.')[2] for line in lines]
         file.close()
+        max_depth = len(list(dict.fromkeys(keys))) + 1
         if len(keys) == 0:
             raise 0
         print('bootstrap from previously crawled')
 except:
     print('get neighbors')
     keys = [data["key"] for data in ygg.neighbours.values()]
+    keys.insert(0, ygg.key)
 
+# keys.insert(0, ygg.key)
+keys = list(dict.fromkeys(keys))
 print('make crawler', keys)
-crawler = CrawledPeers(ygg, keys)
+crawler = CrawledPeers(ygg, keys, max_depth)
 print('do perform')
 crawler.perform()
 print('do open', True) 
