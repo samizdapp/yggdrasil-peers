@@ -109,9 +109,9 @@ class CrawledPeers(PeerSource):
         self.ygg = ygg
         self.keys = keys
         self.max_depth = max_depth
-        self.bloom = BloomFilter(max_elements=10**8, error_rate=0.01, filename=('/peers/bloom5.bin', -1))
+        self.bloom = BloomFilter(max_elements=10**8, error_rate=0.01, filename=('/peers/bloom7.bin', -1))
         self.bloom_peered = BloomFilter(max_elements=10**8, error_rate=0.01)
-
+        self.bloom_queried = BloomFilter(max_elements=10**8, error_rate=0.01)
     def fetch(self):
         self.resource = dict()
         print('start fetch', self.max_depth, self.keys)
@@ -125,11 +125,12 @@ class CrawledPeers(PeerSource):
                 print('out of keys')
                 return
             
-            if key not in self.bloom:
+            if key not in self.bloom and key not in self.bloom_queried:
+                self.bloom_queried.add(key)
                 print('query nodeInfo for key: ', key )
-                self.bloom.add(key)
                 nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
                 if nodeInfo == None:
+                    self.bloom.add(key)
                     continue
                 # print(nodeInfo)
                 if "samizdapp" in nodeInfo.keys():
@@ -137,6 +138,8 @@ class CrawledPeers(PeerSource):
                     depth += 1  # Reduce search space as cohort members are found.
                     nodeInfo["key"] = key
                     self.resource[key] = nodeInfo
+                else:
+                    self.bloom.add(key)
             else:
                 print('skip nodeInfo ', key)
 

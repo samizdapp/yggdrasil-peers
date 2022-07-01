@@ -7,7 +7,7 @@ do
   echo "ran script"
   tmp=$(mktemp)
   cat hosts_header > $tmp
-  cat hosts_crawled >> $tmp
+  cat /peers/hosts_crawled >> $tmp
   cat $tmp > /peers/yg_hosts
   cat /peers/yg_hosts
   sleep 10

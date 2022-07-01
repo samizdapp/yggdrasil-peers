@@ -13,7 +13,7 @@ print("query self", True)
 ygg.query(yqq.SELF)
 max_depth = 1
 try:
-    with open("hosts_crawled", 'r') as file:
+    with open("/peers/hosts_crawled", 'r') as file:
         lines = file.readlines()
         keys = [line.rstrip().split(' ').pop().split('.')[1] + line.rstrip().split(' ').pop().split('.')[2] for line in lines]
         file.close()
@@ -33,5 +33,5 @@ crawler = CrawledPeers(ygg, keys, max_depth)
 print('do perform')
 crawler.perform()
 print('do open', True) 
-with open("hosts_crawled", 'w') as f:
+with open("/peers/hosts_crawled", 'w') as f:
     crawler.write(f)
