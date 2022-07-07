@@ -109,7 +109,7 @@ class CrawledPeers(PeerSource):
         self.ygg = ygg
         self.keys = keys
         self.max_depth = max_depth
-        self.bloom = BloomFilter(max_elements=10**8, error_rate=0.01, filename=('/peers/bloom7.bin', -1))
+        self.bloom = BloomFilter(max_elements=10**8, error_rate=0.01) #, filename=('/peers/bloom8.bin', -1))
         self.bloom_peered = BloomFilter(max_elements=10**8, error_rate=0.01)
         self.bloom_queried = BloomFilter(max_elements=10**8, error_rate=0.01)
     def fetch(self):
@@ -121,13 +121,14 @@ class CrawledPeers(PeerSource):
             # depth += 1
             try:
                 key = self.keys.pop(0)
+                print('checking key', key)
             except:
                 print('out of keys')
                 return
             
             if key not in self.bloom and key not in self.bloom_queried:
                 self.bloom_queried.add(key)
-                # print('query nodeInfo for key: ', key )
+                print('query nodeInfo for key: ', key )
                 nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
                 if nodeInfo == None:
                     self.bloom.add(key)
@@ -140,11 +141,11 @@ class CrawledPeers(PeerSource):
                     self.resource[key] = nodeInfo
                 else:
                     self.bloom.add(key)
-            # else:
-                # print('skip nodeInfo ', key)
+            else:
+                print('skip nodeInfo ', key)
 
             if key not in self.bloom_peered:
-                # print('query peers for key: ', key)
+                print('query peers for key: ', key)
                 self.bloom_peered.add(key)
                 children = self.ygg.query(yqq.REMOTE_PEERS(key), True)
                 if children == None:
@@ -161,8 +162,8 @@ class CrawledPeers(PeerSource):
                     self.keys += children['keys']
                 except:
                     continue
-            # else:
-            #     print('skip peers: ', key)
+            else:
+                print('skip peers: ', key)
         print('max depth', depth, self.max_depth)
 
     def extract(self, resource=None):

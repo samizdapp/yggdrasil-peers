@@ -2,7 +2,7 @@
 while :
 do
   echo "peers crawl loop"
-  echo "run script"
+  echo "run crawl script"
   python3 -u example.py
   echo "ran script"
   tmp=$(mktemp)
