@@ -127,7 +127,7 @@ class CrawledPeers(PeerSource):
             
             if key not in self.bloom and key not in self.bloom_queried:
                 self.bloom_queried.add(key)
-                print('query nodeInfo for key: ', key )
+                # print('query nodeInfo for key: ', key )
                 nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
                 if nodeInfo == None:
                     self.bloom.add(key)
@@ -140,11 +140,11 @@ class CrawledPeers(PeerSource):
                     self.resource[key] = nodeInfo
                 else:
                     self.bloom.add(key)
-            else:
-                print('skip nodeInfo ', key)
+            # else:
+                # print('skip nodeInfo ', key)
 
             if key not in self.bloom_peered:
-                print('query peers for key: ', key)
+                # print('query peers for key: ', key)
                 self.bloom_peered.add(key)
                 children = self.ygg.query(yqq.REMOTE_PEERS(key), True)
                 if children == None:
@@ -161,8 +161,8 @@ class CrawledPeers(PeerSource):
                     self.keys += children['keys']
                 except:
                     continue
-            else:
-                print('skip peers: ', key)
+            # else:
+            #     print('skip peers: ', key)
         print('max depth', depth, self.max_depth)
 
     def extract(self, resource=None):
