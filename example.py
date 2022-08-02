@@ -1,5 +1,6 @@
 from peer_sources import PublicPeers, CrawledPeers
 from yggdrasil_iface import YggdrasilConnection, yqq
+import os
 
 # public = PublicPeers()
 # public.perform()
@@ -12,8 +13,10 @@ ygg = YggdrasilConnection.fromServer()
 print("query self", True)
 ygg.query(yqq.SELF)
 max_depth = 1
+version = os.environ.get('VERSION')
+hosts_cache = "/peers/hosts_crawled" + version
 try:
-    with open("/peers/hosts_crawled", 'r') as file:
+    with open(hosts_cache, 'r') as file:
         lines = file.readlines()
         keys = [line.rstrip().split(' ').pop().split('.')[1] + line.rstrip().split(' ').pop().split('.')[2] for line in lines]
         file.close()
@@ -33,5 +36,5 @@ crawler = CrawledPeers(ygg, keys, max_depth)
 print('do perform')
 crawler.perform()
 print('do open', True) 
-with open("/peers/hosts_crawled", 'w') as f:
+with open(hosts_cache, 'w') as f:
     crawler.write(f)
