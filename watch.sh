@@ -1,5 +1,5 @@
 #!/bin/bash
-export VERSION=3
+export VERSION=5
 while :
 do
   echo "peers crawl loop"
