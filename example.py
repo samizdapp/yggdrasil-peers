@@ -14,7 +14,7 @@ print("query self", True)
 ygg.query(yqq.SELF)
 max_depth = 1
 version = os.environ.get('VERSION')
-hosts_cache = "/peers/hosts_crawled" + version
+hosts_cache = "/shared_etc/hosts_crawled" + version
 try:
     with open(hosts_cache, 'r') as file:
         lines = file.readlines()

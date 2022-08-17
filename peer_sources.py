@@ -109,7 +109,7 @@ class CrawledPeers(PeerSource):
         self.ygg = ygg
         self.keys = keys
         self.max_depth = max_depth
-        self.bloom = BloomFilter(max_elements=10**8, error_rate=0.01) #, filename=('/peers/bloom8.bin', -1))
+        self.bloom = BloomFilter(max_elements=10**8, error_rate=0.01) #, filename=('/shared_etc/bloom8.bin', -1))
         self.bloom_peered = BloomFilter(max_elements=10**8, error_rate=0.01)
         self.bloom_queried = BloomFilter(max_elements=10**8, error_rate=0.01)
     def fetch(self):
