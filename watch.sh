@@ -1,5 +1,5 @@
 #!/bin/bash
-export VERSION=8
+export VERSION=9
 touch "/shared_etc/hosts_crawled$VERSION"
 while :
 do
