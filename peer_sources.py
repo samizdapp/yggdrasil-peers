@@ -116,7 +116,7 @@ class CrawledPeers(PeerSource):
         self.resource = dict()
         print('start fetch', self.max_depth, self.keys)
         depth = 0
-        max = 1000
+        max = 100
         i = 0
 
         while depth < self.max_depth and i < max:
