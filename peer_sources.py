@@ -116,10 +116,21 @@ class CrawledPeers(PeerSource):
         self.resource = dict()
         print('start fetch', self.max_depth, self.keys)
         depth = 0
-        max = 100
+        max = 500
         i = 0
+        max_depth = self.max_depth
+        if self.max_depth > 1:
+            for key in self.keys:
+                nodeInfo = self.ygg.query(yqq.NODEINFO(key), True)
+                if nodeInfo == None:
+                    print('key', key, 'returned no node_info at start, decrement max_depth')
+                    max_depth -= 1
+                    continue
+                if "samizdapp" in nodeInfo.keys():
+                    print('found samizdapp key alive', key)
 
-        while depth < self.max_depth and i < max:
+
+        while depth < max_depth and i < max:
             try:
                 key = self.keys.pop(0)
                 # print('checking key', key)
