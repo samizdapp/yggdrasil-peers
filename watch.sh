@@ -1,7 +1,20 @@
 #!/bin/bash
+
+send_status () {
+  STATUS="$1"
+  MESSAGE="$2"
+  curl \
+    -d "{\"service\": \"yggdrasil_crawler\", \"status\": \"$STATUS\", \"message\": \"$MESSAGE\"}" -H "Content-Type: application/json"\
+    -X POST http://localhost/api/status/logs
+}
+
 export VERSION=12
 touch "/shared_etc/hosts_crawled$VERSION"
 SLEEP=10
+
+WAITING_MSG="Waiting to crawl again."
+send_status "ONLINE" "$WAITING_MSG"
+
 while :
 do
   echo "peers crawl loop"
@@ -21,8 +34,13 @@ do
   rm $tmp
   cat /shared_etc/yg_hosts
   echo "run crawl script"
+
+  send_status "ONLINE" "Crawling for new hosts."
+
   python3 -u example.py
   echo "ran script"
+
+  send_status "ONLINE" "$WAITING_MSG"
 
   sleep $SLEEP
 done

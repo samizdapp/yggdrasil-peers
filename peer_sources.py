@@ -4,12 +4,19 @@ from http.client import HTTPSConnection
 from lxml.html import parse
 from lxml.etree import XPath
 
+import requests
 import sys
 import random
 from collections import defaultdict
 
 from yggdrasil_iface import yqq
 
+def send_status (status, message):
+    requests.post("http://localhost/api/status/logs", json={
+        'service': "yggdrasil_crawler",
+        'status': status,
+        'message': message
+    })
 
 class PeerSource(ABC):
     """Parent class of all the ways peers can be discovered.
@@ -131,6 +138,9 @@ class CrawledPeers(PeerSource):
 
 
         while depth < max_depth and i < max:
+
+            send_status("ONLINE", "Crawling for new hosts.")
+
             try:
                 key = self.keys.pop(0)
                 # print('checking key', key)
