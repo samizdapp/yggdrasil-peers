@@ -7,7 +7,7 @@ touch "/shared_etc/hosts_crawled$VERSION"
 SLEEP=10
 
 WAITING_MSG="Waiting to crawl again."
-send_status "yggdrasil_cralwer" "ONLINE" "$WAITING_MSG"
+send_status "yggdrasil_crawler" "WAITING" "$WAITING_MSG"
 
 while :
 do
@@ -29,12 +29,12 @@ do
   cat /shared_etc/yg_hosts
   echo "run crawl script"
 
-  send_status "yggdrasil_cralwer" "ONLINE" "Crawling for new hosts."
+  send_status "yggdrasil_crawler" "ONLINE" "Crawling for new hosts."
 
   python3 -u example.py
   echo "ran script"
 
-  send_status "yggdrasil_cralwer" "ONLINE" "$WAITING_MSG"
+  send_status "yggdrasil_crawler" "WAITING" "$WAITING_MSG"
 
   sleep $SLEEP
 done
