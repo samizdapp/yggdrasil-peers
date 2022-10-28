@@ -12,7 +12,7 @@ from collections import defaultdict
 from yggdrasil_iface import yqq
 
 def send_status (status, message):
-    requests.post("http://localhost/api/status/logs", json={
+    requests.post("http://localhost/smz/api/status/logs", json={
         'service': "yggdrasil_crawler",
         'status': status,
         'message': message
